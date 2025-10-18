@@ -25,10 +25,14 @@ A modern React application for interactive product customization with real-time 
 src/
 ├── context/EditorStore.js         # State management
 ├── components/
-│   ├── ProductViewer.jsx          # Product display & controls
-│   ├── CustomizationPanel.jsx     # Color/material selector
-│   ├── EditorPanel.jsx            # UI configuration
-│   └── OptionGroup.jsx            # Expandable sections
+│   |- ProductViewer.jsx          # Product display & controls
+│   |- CustomizationPanel.jsx     # Color/material selector
+│   |- EditorPanel.jsx            # UI configuration
+│   |- OptionGroup.jsx            # Expandable sections
+|   |- PreviewArea.jsx
+|   |- CustomizableCard.jsx
+|   |- ColorSelector.jsx
+|   |- LayoutSwitcher.jsx
 ├── pages/
 │   ├── EditorPage.jsx             # Main layout
 │   ├── DemoPage.jsx               # Product showcase
@@ -155,4 +159,4 @@ Teal: #4a7a6b
 
 ## Author
 
-Shreyas Aini
+Shreya Saini
