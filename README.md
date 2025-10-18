@@ -1,644 +1,126 @@
 # Dynamic UI Editor - Product Configurator
 
-A modern, interactive product configurator built with React and Zustand. This application allows users to customize a chair product with different colors, materials, and viewing angles, while simultaneously previewing UI design changes in real-time.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Component API](#component-api)
-3. [How the Editor Works](#how-the-editor-works)
-4. [State Management](#state-management)
-5. [Configurable Props](#configurable-props)
-6. [UX Improvements & Design Decisions](#ux-improvements--design-decisions)
-7. [Project Structure](#project-structure)
-8. [Installation & Setup](#installation--setup)
-
----
-
-## Overview
-
-This project demonstrates a dual-mode interface:
-
-- **Product View**: Interactive 3D-like chair customizer with color selection, material options, zoom controls, and multiple viewing angles
-- **Demo View**: Clean product showcase with gallery, material/color display, and pricing information
-- **UI Editor**: Real-time customization of typography, colors, spacing, buttons, and layout styling
-
-### Key Features
-
-- Color customization with live hue-rotation preview
-- Multiple product viewing angles (Front, 45°, Side, Back, Top)
-- Zoom controls with visual feedback
-- Responsive mobile/desktop layouts
-- Real-time UI configuration
-- State persistence across views
-- Local image assets from project folder
-
----
-
-## Component API
-
-### EditorStore (Zustand)
-
-**Location**: `src/context/EditorStore.js`
-
-#### State Properties
-
-```javascript
-{
-  // UI Configuration
-  uiConfig: {
-    fontFamily: "Inter",           // Font used throughout UI
-    fontSize: 14,                  // Base font size in px
-    fontWeight: 500,               // Font weight (400-700)
-    cardBg: "#ffffff",             // Card background color
-    sectionBg: "#f8f9fa",          // Section background color
-    textColor: "#111827",          // Primary text color
-    buttonBgColor: "#c75b4a",      // Button background color
-    buttonTextColor: "#ffffff",    // Button text color
-    buttonBorderRadius: 8,         // Button border radius in px
-    buttonShadow: "medium",        // Shadow intensity: "small" | "medium" | "large"
-    containerPadding: 24,          // Padding inside containers in px
-    imageBorderRadius: 8,          // Image border radius in px
-    imageSpacing: 8,               // Gap between gallery items in px
-    strokeColor: "#e5e7eb",        // Border/stroke color
-    strokeWeight: 1,               // Border width in px
-    layout: "desktop",             // Current layout: "desktop" | "mobile"
-  },
-
-  // Product State
-  product: {
-    name: "Cozy Lounge Chair",
-    price: 1299,
-    oldPrice: 1599,
-    material: "Leather",
-    color: "#8b5e3c",              // Current selected color
-    armsType: "Fixed Arms",
-    legsFinish: "Steel",
-  },
-
-  // Interaction State
-  zoom: 1,                         // Zoom level (0.6 - 2.0)
-  showCustomization: true,         // Panel visibility
-}
-```
-
-#### Actions/Methods
-
-```javascript
-// Update UI configuration
-updateUIConfig(key, value)
-// Example: updateUIConfig('fontSize', 16)
-
-// Update product data
-updateProduct(key, value)
-// Example: updateProduct('color', '#4a6741')
-
-// Zoom controls
-handleZoomIn()    // Increase zoom (max 2x)
-handleZoomOut()   // Decrease zoom (min 0.6x)
-
-// Reset functionality
-handleReset()     // Reset zoom and color to defaults
-
-// Panel visibility
-toggleCustomization()  // Show/hide customization panel
-
-// Configuration management
-importConfig(config)   // Import saved configuration
-exportConfig()         // Export current configuration
-reset()                // Reset everything to defaults
-```
-
-### ProductViewer Component
-
-**Location**: `src/components/ProductViewer.jsx`
-
-#### Props
-
-Uses Zustand store - no direct props needed
-
-#### Features
-
-- Interactive image display with color filtering
-- 5 viewing angles with thumbnail navigation
-- Zoom in/out buttons with percentage display
-- Reset functionality
-- Settings button to toggle customization panel
-- "View in room" button (placeholder for AR)
-- Current view label display
-- Desktop: Full "View in room" text; Mobile: Icon only
-
-#### Color Mapping
-
-```javascript
-{
-  '#8b5e3c': 0,      // Brown (default)
-  '#4a6741': 95,     // Forest Green
-  '#5c7a6f': 150,    // Sage
-  '#6b8270': 110,    // Moss
-  '#5d5d7a': 220,    // Slate
-  '#8b5e83': 290,    // Mauve/Purple
-  '#4a5f7a': 200,    // Navy
-  '#c75245': 5,      // Terracotta
-  '#8b3a3a': 350,    // Burgundy
-  '#4a7a6b': 165,    // Teal
-}
-```
-
-### CustomizationPanel Component
-
-**Location**: `src/components/CustomizationPanel.jsx`
-
-#### Props
-
-Uses Zustand store - no direct props needed
-
-#### Features
-
-- Expandable option groups (Arms, Arms Finish, Legs Finish)
-- Material selection tabs (6 options)
-- Color picker (10 color swatches)
-- Color preview with large swatch
-- Price display with old price
-- Add to cart button
-- Reset All button
-
-### EditorPage Component
-
-**Location**: `src/pages/EditorPage.jsx`
-
-#### Features
-
-- Responsive layout (desktop: side-by-side, mobile: stacked)
-- Desktop/Mobile toggle
-- Conditional customization panel display
-
-### DemoPage Component
-
-**Location**: `src/pages/DemoPage.jsx`
-
-#### Features
-
-- Product showcase with 5 viewing angles
-- Material, View, Color, and Price information
-- Thumbnail gallery (90px tiles)
-- Add to cart and View in AR buttons
-- Color filtering applied to main image
-
----
-
-## How the Editor Works
-
-### Data Flow
-
-```
-User Action → ProductViewer/CustomizationPanel/EditorPanel
-    ↓
-Zustand Store Updates (updateUIConfig, updateProduct)
-    ↓
-Components Re-render with New Configuration
-    ↓
-UI/Product Display Updates in Real-Time
-```
-
-### Color Filtering System
-
-The application uses CSS `hue-rotate` filter to change chair colors:
-
-```javascript
-// Applied to image element
-filter: `hue-rotate(${getColorAdjustment(color)}deg) 
-         saturate(1.5) 
-         brightness(${getBrightness(color)})`
-```
-
-This approach:
-- Changes all colors in the image proportionally
-- Affects arms, legs, seat, and all components uniformly
-- Maintains original image contrast and structure
-- Applies instantly without server-side processing
-
-### View Switching
-
-The app supports two main views:
-
-**Product View**
-- Interactive product customization
-- Settings accessible via Settings button
-- Full control over product parameters
-
-**Demo View**
-- Read-only product showcase
-- Same color filtering applied
-- Shows material and pricing information
-- Clean, minimal interface
-
-### Responsive Behavior
-
-**Desktop (sm breakpoint and up)**
-- 2-column layout (Product Viewer + Customization Panel)
-- Full button labels
-- UI Editor panel on right side
-- View in room button on top-left with text
-
-**Mobile (below sm breakpoint)**
-- Stacked layout (Product Viewer above Customization Panel)
-- Compact button labels or icons
-- Simplified thumbnail gallery
-- View in room button as icon only on top-right
-
----
-
-## State Management
-
-### Zustand Store Architecture
-
-```javascript
-// Single store handles all state
-const useEditorStore = create((set, get) => ({
-  // State
-  uiConfig: {...},
-  product: {...},
-  zoom: 1,
-  showCustomization: true,
-
-  // Actions
-  updateUIConfig: (key, value) => {...},
-  updateProduct: (key, value) => {...},
-  // ... etc
-}))
-```
-
-### Why Zustand?
-
-- Lightweight (no provider wrapper needed)
-- Simple API (easier than Redux)
-- Direct state access without selectors
-- Works seamlessly with React hooks
-- No localStorage needed (compliant with Claude.ai)
-
-### Usage in Components
-
-```javascript
-import { useEditorStore } from '../context/EditorStore';
-
-function MyComponent() {
-  const { uiConfig, product, updateProduct } = useEditorStore();
-  
-  return (
-    <div style={{ color: uiConfig.textColor }}>
-      {product.name}
-    </div>
-  );
-}
-```
-
----
-
-## Configurable Props
-
-### UI Configuration Options
-
-All UI configuration is stored in `uiConfig`:
-
-| Property | Type | Range | Purpose |
-|----------|------|-------|---------|
-| fontFamily | string | Any system font | Font for all text |
-| fontSize | number | 10-24px | Base text size |
-| fontWeight | number | 400, 500, 600, 700 | Text boldness |
-| cardBg | hex color | Any #XXXXXX | Card/panel background |
-| sectionBg | hex color | Any #XXXXXX | Section background |
-| textColor | hex color | Any #XXXXXX | Primary text |
-| buttonBgColor | hex color | Any #XXXXXX | Button background |
-| buttonTextColor | hex color | Any #XXXXXX | Button text |
-| buttonBorderRadius | number | 0-24px | Button roundness |
-| buttonShadow | string | "small", "medium", "large" | Shadow depth |
-| containerPadding | number | 8-32px | Inner padding |
-| imageBorderRadius | number | 0-24px | Image/tile roundness |
-| imageSpacing | number | 4-16px | Gap between items |
-| strokeColor | hex color | Any #XXXXXX | Border color |
-| strokeWeight | number | 1-3px | Border thickness |
-
-### Product Configuration Options
-
-| Property | Type | Purpose |
-|----------|------|---------|
-| name | string | Product display name |
-| price | number | Current price |
-| oldPrice | number | Original/sale price |
-| material | string | Current material |
-| color | hex color | Current color (#XXXXXX) |
-| armsType | string | Arm configuration |
-| legsFinish | string | Leg material/finish |
-
-### Zoom Controls
-
-| Property | Range | Behavior |
-|----------|-------|----------|
-| zoom | 0.6 - 2.0 | 1 = 100%, 0.6 = 60%, 2.0 = 200% |
-| handleZoomIn | +0.2 per click | Max 2.0x |
-| handleZoomOut | -0.2 per click | Min 0.6x |
-
----
-
-## UX Improvements & Design Decisions
-
-### 1. **Color Filtering Strategy**
-
-**Decision**: Use CSS hue-rotate instead of image swapping
-
-**Rationale**:
-- Single image file handles all colors (faster loading)
-- Consistent visual experience across all colors
-- Smooth, instant color transitions
-- Reduced server processing
-- Works offline with local images
-
-**Implementation**:
-- Applied to entire product image
-- Affects arms, legs, seat uniformly
-- Saturation boost (1.5x) for visual prominence
-- Brightness adjustment for darker colors
-
----
-
-### 2. **Responsive Layout Strategy**
-
-**Decision**: Conditional rendering and responsive classes instead of complex breakpoints
-
-**Rationale**:
-- Clear separation of mobile/desktop experiences
-- Tailwind's `sm:hidden` / `hidden sm:block` for clean logic
-- Better performance (no unnecessary rendering)
-- Easier to maintain and debug
-
-**Desktop Layout**:
-```
-[Control Buttons] [Image] [Customization Panel]
-                 [Thumbnails]
-```
-
-**Mobile Layout**:
-```
-[Image with Icon Button]
-[Thumbnails]
-[Customization Panel]
-```
-
----
-
-### 3. **Button Placement on Mobile**
-
-**Decision**: Move "View in room" button to top-right on mobile
-
-**Rationale**:
-- Avoids overlap with settings button on left
-- Keeps both buttons accessible
-- Icon-only version saves space
-- Full text version on desktop for clarity
-
-**Implementation**:
-```javascript
-// Desktop: Full button on top-left
-<div className="hidden sm:block">
-  <button>View in room</button>
-</div>
-
-// Mobile: Icon only on top-right
-<div className="sm:hidden">
-  <button><Icon /></button>
-</div>
-```
-
----
-
-### 4. **Customization Panel Toggle**
-
-**Decision**: Settings button controls panel visibility
-
-**Rationale**:
-- Maximizes product viewing space on mobile
-- Users focus on what matters most
-- Reduces cognitive load
-- Improves mobile experience significantly
-
-**Benefits**:
-- Full-screen product view when needed
-- Quick access to customization when needed
-- Smooth transitions
-- No layout shifts
-
----
-
-### 5. **Thumbnail Gallery Design**
-
-**Decision**: Clean thumbnails without overlays or borders
-
-**Rationale**:
-- Minimal, modern aesthetic
-- Focus on product images
-- Easier to scan quickly
-- Reduced visual clutter
-- Selected state shown by scale effect only
-
-**Features**:
-- 5 angles for comprehensive viewing
-- Hover opacity change for feedback
-- Scale effect on selection
-- No colored borders
-- No hover overlays
-
----
-
-### 6. **Local Image Assets**
-
-**Decision**: Use local images from project folder instead of external URLs
-
-**Rationale**:
-- Faster loading (no network requests)
-- Works offline
-- Consistent performance
-- Easier to manage versions
-- No external dependencies
-
-**Structure**:
-```
-public/images/products/chair/
-├── front.jpg
-├── 45degrees.jpg
-├── side.jpg
-├── back.jpg
-└── down.jpg
-```
-
----
-
-### 7. **Color Information Display**
-
-**Decision**: Show color hex code in demo view
-
-**Rationale**:
-- Useful for designers/developers
-- Transparency about exact colors used
-- Educational value
-- Enables color copying for other uses
-
----
-
-### 8. **Zoom Level Feedback**
-
-**Decision**: Display zoom percentage in bottom-right corner
-
-**Rationale**:
-- Users understand current view scale
-- Provides visual confirmation of zoom actions
-- Helps judge product size relative to interface
-- Non-intrusive placement
-
----
-
-### 9. **Expandable Option Groups**
-
-**Decision**: Collapsible sections for customization options
-
-**Rationale**:
-- Reduces initial cognitive load
-- Organizes related options
-- Better for mobile screens
-- Keeps panel compact
-- Users focus on relevant sections
-
-**Implementation**:
-- ChevronDown icon indicates expand/collapse
-- Smooth transitions
-- Only one section expanded by default
-- Clear visual hierarchy
-
----
-
-### 10. **Real-time Preview**
-
-**Decision**: All changes apply immediately without confirmation
-
-**Rationale**:
-- Instant feedback loop
-- Users see impact immediately
-- No delay or loading states
-- More engaging experience
-- Better for experimentation
-
----
+A modern React application for interactive product customization with real-time UI editing. Features color selection, zoom controls, multiple product angles, and responsive design.
+
+## Features
+
+- **Product Customization**: Color picker with 10 options, material selection, and zoom controls
+- **Multi-angle Viewing**: 5 product views (Front, 45°, Side, Back, Top)
+- **Real-time UI Editor**: Customize typography, colors, spacing, and button styles
+- **Responsive Design**: Desktop and mobile optimized layouts
+- **Instant Preview**: All changes apply immediately without lag
+- **Dual View Modes**: Product View for customization, Demo View for showcase
+
+## Tech Stack
+
+- **Frontend**: React 18+
+- **State Management**: Zustand
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Build**: Create React App
 
 ## Project Structure
 
 ```
 src/
-├── context/
-│   └── EditorStore.js              # Zustand state management
+├── context/EditorStore.js         # State management
 ├── components/
-│   |- ProductViewer.jsx           # Product display & controls
-│   |- CustomizationPanel.jsx      # Color/material selector
-|   |-  LayouSwitcher.jsx
-|   |-  CustomizableCard.jsx
-|   |-  PreviewArea.jsx
-│   |- EditorPanel.jsx             # UI configuration panel
-│   |- OptionGroup.jsx             # Expandable sections
-│   |- ColorSelector.jsx           # Color picker component
+│   ├── ProductViewer.jsx          # Product display & controls
+│   ├── CustomizationPanel.jsx     # Color/material selector
+│   ├── EditorPanel.jsx            # UI configuration
+│   └── OptionGroup.jsx            # Expandable sections
 ├── pages/
-│   ├── EditorPage.jsx              # Product view layout
-│   ├── DemoPage.jsx                # Product showcase
-│   └── App.jsx                     # Root component
-└── public/
-    └── images/
-        └── products/
-            └── chair/              # Local product images
+│   ├── EditorPage.jsx             # Main layout
+│   ├── DemoPage.jsx               # Product showcase
+│   └── App.jsx                    # Root component
+└── public/images/products/chair/  # Product images
 ```
 
----
-
-## Installation & Setup
-
-### Prerequisites
-
-- Node.js 14+
-- npm or yarn
-- React 17+
-- Tailwind CSS
-
-### Installation
+## Installation
 
 ```bash
-# Clone the repository
-git clone <repo-url>
+# Clone and install
+git clone https://github.com/Shreyasaini2004/dynamic-ui-editor.git
 cd dynamic-ui-editor
-
-# Install dependencies
 npm install
 
-# Install required packages
-npm install zustand lucide-react
+# Start development server
+npm start
 
-# Add Tailwind CSS if not already configured
-npm install -D tailwindcss postcss autoprefixer
+# Build for production
+npm run build
 ```
 
-### Project Setup
+## Key Components
 
-1. **Add Local Images**
-   ```bash
-   mkdir -p public/images/products/chair
-   # Copy your chair images to this folder:
-   # - front.jpg
-   # - 45degrees.jpg
-   # - side.jpg
-   # - back.jpg
-   # - down.jpg
-   ```
+### EditorStore (Zustand)
+Centralized state management for UI config and product data.
 
-2. **Configure Tailwind** (if needed)
-   ```bash
-   npx tailwindcss init -p
-   ```
+**Actions:**
+- `updateUIConfig(key, value)` - Update UI styling
+- `updateProduct(key, value)` - Update product data
+- `handleZoomIn/Out()` - Control zoom level (0.6x - 2x)
+- `handleReset()` - Reset to defaults
+- `toggleCustomization()` - Toggle panel visibility
 
-3. **Start Development Server**
-   ```bash
-   npm start
-   ```
+### ProductViewer
+Interactive product display with:
+- Color filtering (CSS hue-rotate)
+- Thumbnail gallery (5 angles)
+- Zoom percentage display
+- Settings button for panel control
 
-4. **Build for Production**
-   ```bash
-   npm run build
-   ```
+### CustomizationPanel
+Product customization with:
+- Expandable option groups
+- 10 color swatches
+- 6 material options
+- Price display
+- Reset All button
 
----
+### DemoPage
+Product showcase with:
+- 5 viewing angles
+- Material/color/price info
+- Clean, minimal interface
 
-## Testing Checklist
+## Color Mapping
 
-- [ ] Color picker changes product image
-- [ ] All 5 viewing angles display
-- [ ] Zoom in/out buttons work
-- [ ] Reset button restores defaults
-- [ ] Settings button toggles panel
-- [ ] Desktop/Mobile toggle works
-- [ ] Customization panel collapses on mobile
-- [ ] Material display shows correctly
-- [ ] Price displays with formatting
-- [ ] All images load from local folder
-- [ ] UI configuration changes apply immediately
-- [ ] No console errors
+```javascript
+Brown: #8b5e3c    | Green: #4a6741   | Sage: #5c7a6f
+Moss: #6b8270     | Slate: #5d5d7a   | Mauve: #8b5e83
+Navy: #4a5f7a     | Terracotta: #c75245 | Burgundy: #8b3a3a
+Teal: #4a7a6b
+```
 
----
+## Configuration Options
 
-## Performance Considerations
+### UI Configuration
+| Property | Type | Range |
+|----------|------|-------|
+| fontSize | number | 10-24px |
+| fontWeight | number | 400-700 |
+| buttonBorderRadius | number | 0-24px |
+| containerPadding | number | 8-32px |
+| Colors | hex | Any #XXXXXX |
 
-- Single image file for all colors (hue rotation)
-- Zustand store for minimal re-renders
-- Conditional rendering for mobile/desktop
-- Local images avoid network delays
-- No localStorage (simpler state management)
-- CSS transforms for smooth animations
+### Product State
+| Property | Type |
+|----------|------|
+| name | string |
+| price | number |
+| color | hex color |
+| material | string |
 
----
+## Design Decisions
+
+1. **CSS Hue-Rotate**: Single image with color filtering instead of image swapping (faster, offline-compatible)
+2. **Responsive Layout**: Conditional rendering for mobile/desktop (cleaner code, better UX)
+3. **Mobile Button Placement**: "View in room" icon on right to avoid overlap with settings button
+4. **Panel Toggle**: Settings button hides/shows customization panel on mobile for full product view
+5. **Clean Thumbnails**: No overlays or colored borders (minimal aesthetic, focus on product)
+6. **Local Images**: Project images instead of external URLs (faster loading, offline support)
+7. **Real-time Preview**: All changes apply instantly (better engagement, instant feedback)
 
 ## Browser Support
 
@@ -647,5 +129,30 @@ npm install -D tailwindcss postcss autoprefixer
 - Safari 14+
 - Edge 90+
 - Mobile browsers (iOS Safari 14+, Chrome Android)
- 
- 
+
+## Getting Started
+
+1. **Add Images**: Place chair images in `public/images/products/chair/`:
+   - front.jpg
+   - 45degrees.jpg
+   - side.jpg
+   - back.jpg
+   - down.jpg
+
+2. **Start Dev Server**: `npm start`
+
+3. **Customize**: Use Product View to test color/zoom controls
+
+4. **Deploy**: Connect to Vercel for automatic deployments
+
+## Performance
+
+- Single image file (hue rotation)
+- Minimal re-renders (Zustand)
+- Local images (no network delay)
+- CSS transforms (smooth animations)
+
+
+## Author
+
+Shreyas Aini
